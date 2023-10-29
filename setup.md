@@ -57,11 +57,11 @@ podman network inspect ansible-network
 
 2. Run container using server image
 
-`podman run -itd --name server --network ansible-network localhost/server:latest`
+`podman run -itd --name srvr1 --network ansible-network localhost/server:latest`
 
 3. Login to container
 
-`podman exec -it server /bin/bash`
+`podman exec -it srvr1 /bin/bash`
 
 
 
