@@ -1,5 +1,44 @@
 # Ansible in Containers
 
+
+
+## Automated setup using Makefile
+
+#### Pre-requisites
+
+* Podman
+
+#### 1. List all the supported command
+```
+$ make help
+Usage: make [target]
+Targets:
+  help        : Show this help document
+  all         : Check SSH folder, build Controller and Server Container images (default)
+  build-controller : Build Controller Container image
+  build-server : Build Server Container image
+  check-ssh   : Check SSH folder and generate keys if needed
+  run-setup   : Will run demo setup with a controller and two server nodes
+```
+
+#### 2. For Building Controller Image 
+
+`make build-controller`
+
+#### 3. For Building Server Image 
+
+`make build-server`
+
+#### 4. To Build Both Images 
+
+`make all`
+
+#### 5. Run initial setup
+
+`make run-setup`
+
+## Manual setup
+
 #### Pre-requisites
 
 * Podman
@@ -14,7 +53,7 @@ podman network inspect ansible-network
 ### Server Container
 1. Build image using Container file
 
-`podman build -t server:latest -f ./server/Containerfile `
+`podman build -t server:latest -f ./server/Containerfile .`
 
 2. Run container using server image
 
@@ -24,19 +63,12 @@ podman network inspect ansible-network
 
 `podman exec -it server /bin/bash`
 
-4. Generate root password
-```
-[root@5d59897ea265 /]# passwd
-Changing password for user root.
-New password:
-Retype new password:
-passwd: all authentication tokens updated successfully.
-```
+
 
 ### Controller Container 
 1. Build image using Container file
 
-`podman build -t controller:latest -f ./controller/Containerfile `
+`podman build -t controller:latest -f ./Controller/Containerfile .`
 
 2. Run container using controller image
 
@@ -46,28 +78,21 @@ passwd: all authentication tokens updated successfully.
 
 `podman exec -it controller /bin/bash`
 
-4. Generate ssh key for controller to connect with server nodes
+4. Run ssh command to connect to server nodes
 
-`[root@604b92c66c05 /]# ssh-keygen`
-
-5. Copy public key to server node to establish ssh connection
 ```
-[root@604b92c66c05 /]# ssh-copy-id root@server
-/usr/bin/ssh-copy-id: INFO: Source of key(s) to be installed: "/root/.ssh/id_rsa.pub"
-/usr/bin/ssh-copy-id: INFO: attempting to log in with the new key(s), to filter out any that are already installed
-/usr/bin/ssh-copy-id: INFO: 1 key(s) remain to be installed -- if you are prompted now it is to install the new keys
-root@server's password:
-
-Number of key(s) added: 1
-
-Now try logging into the machine, with:   "ssh 'root@server'"
-and check to make sure that only the key(s) you wanted were added.
+[auto_user@6dcdb14467e6 .ssh]$ ssh auto_user@srvr1
+The authenticity of host 'srvr1 (10.89.1.6)' can't be established.
+ECDSA key fingerprint is SHA256:SOMEHASH##################    
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added 'srvr1,10.89.1.6' (ECDSA) to the list of known hosts.
+[auto_user@6c6be5867de9 ~]$
 ```
 
 6. Once key is copied, create inventory file and run ansible command. Here, in inventory file you need to add conatiner name.
 ```
-[root@604b92c66c05 /]# echo server > inventory.ini
-[root@604b92c66c05 /]# ansible all -m ping -i inventory.ini
+[auto_user@6dcdb14467e6 /]# echo srvr1 > inventory.ini
+[auto_user@6dcdb14467e6 /]# ansible all -m ping -i inventory.ini --become-user auto_user
 server | SUCCESS => {
     "ansible_facts": {
         "discovered_interpreter_python": "/usr/libexec/platform-python"
